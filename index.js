@@ -5,6 +5,10 @@ var request = require('request');
 var got = require('got');
 var requestify = require('requestify');
 var fetch = require('node-fetch');
+var needle = require('needle');
+var miniget = require('miniget');
+var simpleget = require('simple-get');
+var wreck = require('wreck');
 
 var nock = require('nock');
 var HOST = 'test-perf';
@@ -121,6 +125,74 @@ suite.add('Request POST request', {
     defer: true,
     fn: (defer) => {
         request.post({ url: URL }, () => defer.resolve());
+    }
+});
+
+suite.add('Request Forever GET request', {
+    defer: true,
+    fn: (defer) => {
+        request.get({ url: URL, forever: true }, () => defer.resolve());
+    }
+});
+
+suite.add('Request Forever POST request', {
+    defer: true,
+    fn: (defer) => {
+        request.post({ url: URL, forever: true }, () => defer.resolve());
+    }
+});
+
+suite.add('Needle GET request', {
+    defer: true,
+    fn: (defer) => {
+        needle.get(URL, () => defer.resolve())
+    }
+});
+
+suite.add('Needle POST request', {
+    defer: true,
+    fn: (defer) => {
+        needle.post(URL, '', () => defer.resolve())
+    }
+});
+
+suite.add('Miniget GET request', {
+    defer: true,
+    fn: (defer) => {
+        miniget(URL, () => defer.resolve())
+    }
+});
+
+suite.add('Simple-get GET request', {
+    defer: true,
+    fn: (defer) => {
+        simpleget.concat(URL, () => defer.resolve())
+        // simpleget(URL, () => defer.resolve()) // streaming
+    }
+});
+
+suite.add('Simple-get POST request', {
+    defer: true,
+    fn: (defer) => {
+        simpleget.post({ url: URL, body: '' }, () => defer.resolve())
+    }
+});
+
+suite.add('Wreck GET request', {
+    defer: true,
+    fn: (defer) => {
+        wreck.get(URL)
+            .then(() => defer.resolve())
+            .catch(() => defer.resolve());
+    }
+});
+
+suite.add('Wreck POST request', {
+    defer: true,
+    fn: (defer) => {
+        wreck.post(URL, { payload: '' })
+            .then(() => defer.resolve())
+            .catch(() => defer.resolve());
     }
 });
 
