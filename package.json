@@ -23,13 +23,18 @@
   },
   "homepage": "https://github.com/nik-kor/http-libraries-perf-test#readme",
   "dependencies": {
-    "axios": "^0.18.0",
-    "benchmark": "^2.1.4",
-    "got": "^8.2.0",
-    "nock": "^9.2.3",
-    "node-fetch": "^2.0.0",
-    "request": "^2.83.0",
-    "requestify": "^0.2.5",
-    "superagent": "^3.8.2"
+    "axios": "*",
+    "benchmark": "*",
+    "forever-agent": "*",
+    "got": "*",
+    "miniget": "*",
+    "needle": "*",
+    "nock": "*",
+    "node-fetch": "*",
+    "request": "*",
+    "requestify": "*",
+    "simple-get": "*",
+    "superagent": "*",
+    "wreck": "*"
   }
 }
