@@ -28,7 +28,7 @@ suite.add('http.request POST request', {
     defer: true,
     fn: (defer) => {
         var req = http.request({ host: HOST, path: '/test', method: 'POST' }, (res) => {
-            res.resume().on('end', () => defer.resolve());
+            res.resume().once('end', () => defer.resolve());
         });
         req.write();
         req.end();
@@ -39,64 +39,36 @@ suite.add('http.request GET request', {
     defer: true,
     fn: (defer) => {
         http.request({ path: '/test', host: HOST }, (res) => {
-            res.resume().on('end', () => defer.resolve());
+            res.resume().once('end', () => defer.resolve());
         }).end();
     }
 });
 
-suite.add('fetch GET request', {
-  defer: true,
-  fn: (defer) => {
-    fetch(URL).then(() => defer.resolve())
-  }
-});
-
-suite.add('fetch POST request', {
-  defer: true,
-  fn: (defer) => {
-    fetch(URL, {method: 'POST'}).then(() => defer.resolve());
-  }
-});
-
-suite.add('requestify GET request', {
-  defer: true,
-  fn: (defer) => {
-    requestify.get(URL).then(() => defer.resolve());
-  }
-});
-
-suite.add('requestify POST request', {
-  defer: true,
-  fn: (defer) => {
-    requestify.post(URL).then(() => defer.resolve());
-  }
-});
-
-suite.add('got GET request', {
-  defer: true,
-  fn: (defer) => {
-    got.get(URL).then(()=> defer.resolve());
-  }
-});
-
-suite.add('got POST request', {
-  defer: true,
-  fn: (defer) => {
-    got.post(URL).then(() => defer.resolve());
-  }
-});
-
-suite.add('axios GET request', {
+suite.add('node-fetch GET request', {
     defer: true,
     fn: (defer) => {
-        axios.get('/test').then(() => defer.resolve())
+        fetch(URL).then(() => defer.resolve())
     }
 });
 
-suite.add('axios POST request', {
+suite.add('node-fetch POST request', {
     defer: true,
     fn: (defer) => {
-        axios.post('/test').then(() => defer.resolve());
+        fetch(URL, { method: 'POST' }).then(() => defer.resolve());
+    }
+});
+
+suite.add('got GET request', {
+    defer: true,
+    fn: (defer) => {
+        got.get(URL).then(() => defer.resolve());
+    }
+});
+
+suite.add('got POST request', {
+    defer: true,
+    fn: (defer) => {
+        got.post(URL).then(() => defer.resolve());
     }
 });
 
@@ -196,11 +168,39 @@ suite.add('Wreck POST request', {
     }
 });
 
-suite.on('complete', function(defer) {
+suite.add('[OLD] axios GET request', {
+    defer: true,
+    fn: (defer) => {
+        axios.get('/test').then(() => defer.resolve())
+    }
+});
+
+suite.add('[OLD] axios POST request', {
+    defer: true,
+    fn: (defer) => {
+        axios.post('/test').then(() => defer.resolve());
+    }
+});
+
+suite.add('[OLD] requestify GET request', {
+    defer: true,
+    fn: (defer) => {
+        requestify.get(URL).then(() => defer.resolve());
+    }
+});
+
+suite.add('[OLD] requestify POST request', {
+    defer: true,
+    fn: (defer) => {
+        requestify.post(URL).then(() => defer.resolve());
+    }
+});
+
+suite.on('complete', function (defer) {
     console.log('Fastest is ' + this.filter('fastest').map('name'));
 });
 
-suite.on('cycle', function(event) {
+suite.on('cycle', function (event) {
     console.log(String(event.target));
 });
 
