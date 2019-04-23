@@ -72,6 +72,15 @@ suite.add('got POST request', {
     }
 });
 
+suite.add('got Stream GET request', {
+    defer: true,
+    fn: (defer) => {
+        var str = got.stream.get(URL)
+        str.resume()
+        str.once('end', () => defer.resolve());
+    }
+});
+
 suite.add('superagent GET request', {
     defer: true,
     fn: (defer) => {
@@ -89,7 +98,7 @@ suite.add('superagent POST request', {
 suite.add('Request GET request', {
     defer: true,
     fn: (defer) => {
-        request(URL, () => defer.resolve());
+        request.get({ url: URL }, () => defer.resolve());
     }
 });
 
@@ -128,6 +137,15 @@ suite.add('Needle POST request', {
     }
 });
 
+suite.add('Needle Stream GET request', {
+    defer: true,
+    fn: (defer) => {
+        var stream = needle.get(URL)
+        stream.on('readable', function() { while (this.read()) {} });
+        stream.on('done', () => defer.resolve());
+    }
+});
+
 suite.add('Miniget GET request', {
     defer: true,
     fn: (defer) => {
@@ -146,25 +164,30 @@ suite.add('Simple-get GET request', {
 suite.add('Simple-get POST request', {
     defer: true,
     fn: (defer) => {
-        simpleget.post({ url: URL, body: '' }, () => defer.resolve())
+        simpleget.concat({ url: URL, method: 'POST', body: '' }, () => defer.resolve())
+    }
+});
+
+suite.add('Simple-get Stream GET request', {
+    defer: true,
+    fn: (defer) => {
+        simpleget(URL, (err, res) => { 
+            res.resume().once('end', () => defer.resolve());
+        });
     }
 });
 
 suite.add('Wreck GET request', {
     defer: true,
     fn: (defer) => {
-        wreck.get(URL)
-            .then(() => defer.resolve())
-            .catch(() => defer.resolve());
+        wreck.get(URL).then(() => defer.resolve());
     }
 });
 
 suite.add('Wreck POST request', {
     defer: true,
     fn: (defer) => {
-        wreck.post(URL, { payload: '' })
-            .then(() => defer.resolve())
-            .catch(() => defer.resolve());
+        wreck.post(URL, { payload: '' }).then(() => defer.resolve());
     }
 });
 
