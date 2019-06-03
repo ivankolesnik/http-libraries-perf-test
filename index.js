@@ -9,6 +9,8 @@ var needle = require('needle');
 var miniget = require('miniget');
 var simpleget = require('simple-get');
 var wreck = require('wreck');
+var urllib = require('urllib');
+var cUrl = require('node-libcurl');
 
 var nock = require('nock');
 var HOST = 'test-perf';
@@ -24,6 +26,15 @@ nock('http://test-perf').persist()
     .post('/test').reply(200, 'ok')
     .get('/test').reply(200, 'ok');
 
+suite.add('http.request GET request', {
+    defer: true,
+    fn: (defer) => {
+        http.request({ path: '/test', host: HOST }, (res) => {
+            res.resume().once('end', () => defer.resolve());
+        }).end();
+    }
+});
+
 suite.add('http.request POST request', {
     defer: true,
     fn: (defer) => {
@@ -35,12 +46,54 @@ suite.add('http.request POST request', {
     }
 });
 
-suite.add('http.request GET request', {
+suite.add('urllib GET request', {
     defer: true,
     fn: (defer) => {
-        http.request({ path: '/test', host: HOST }, (res) => {
-            res.resume().once('end', () => defer.resolve());
-        }).end();
+        urllib.request(URL, () => defer.resolve());
+    }
+});
+
+suite.add('urllib POST request', {
+    defer: true,
+    fn: (defer) => {
+        urllib.request(URL, { method: 'POST' }, () => defer.resolve());
+    }
+});
+
+suite.add('curl GET request', {
+    defer: true,
+    fn: (defer) => {
+        var curl = new cUrl.Curl();
+        curl.setOpt('URL', URL)
+        curl.on('end', function() {
+            defer.resolve();
+            this.close();
+        })
+        curl.on('error', function() {
+            defer.resolve();
+            this.close();
+        })
+
+        curl.perform();
+    }
+});
+
+suite.add('curl POST request', {
+    defer: true,
+    fn: (defer) => {
+        var curl = new cUrl.Curl();
+        curl.setOpt('URL', URL);
+        curl.setOpt('HTTPPOST', [])
+        curl.on('end', function() {
+            defer.resolve();
+            this.close();
+        })
+        curl.on('error', function() {
+            defer.resolve();
+            this.close();
+        })
+
+        curl.perform();
     }
 });
 

@@ -31,10 +31,12 @@
     "needle": "*",
     "nock": "*",
     "node-fetch": "*",
+    "node-libcurl": "*",
     "request": "*",
     "requestify": "*",
     "simple-get": "*",
     "superagent": "*",
+    "urllib": "*",
     "wreck": "*"
   }
 }
