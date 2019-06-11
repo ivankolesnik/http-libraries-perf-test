@@ -10,26 +10,27 @@ var miniget = require('miniget');
 var simpleget = require('simple-get');
 var wreck = require('wreck');
 var urllib = require('urllib');
-var cUrl = require('node-libcurl');
+var hyperquest = require('hyperquest');
 
 var nock = require('nock');
-var HOST = 'test-perf';
-var URL = `http://${HOST}/test`;
+var HOST = '127.0.0.1';
+var PATH = '/test'
+var URL = `http://${HOST}${PATH}`;
 
 axios.defaults.baseURL = `http://${HOST}`;
 
 var Benchmark = require('benchmark');
 var suite = new Benchmark.Suite;
 
-nock('http://test-perf').persist()
+nock(`http://${HOST}`).persist()
     // .log(console.log)
-    .post('/test').reply(200, 'ok')
-    .get('/test').reply(200, 'ok');
+    .post(PATH).reply(200, Buffer.from('ok'))
+    .get(PATH).reply(200, Buffer.from('ok'));
 
 suite.add('http.request GET request', {
     defer: true,
     fn: (defer) => {
-        http.request({ path: '/test', host: HOST }, (res) => {
+        http.request({ path: PATH, host: HOST }, (res) => {
             res.resume().once('end', () => defer.resolve());
         }).end();
     }
@@ -38,7 +39,7 @@ suite.add('http.request GET request', {
 suite.add('http.request POST request', {
     defer: true,
     fn: (defer) => {
-        var req = http.request({ host: HOST, path: '/test', method: 'POST' }, (res) => {
+        var req = http.request({ host: HOST, path: PATH, method: 'POST' }, (res) => {
             res.resume().once('end', () => defer.resolve());
         });
         req.write();
@@ -57,43 +58,6 @@ suite.add('urllib POST request', {
     defer: true,
     fn: (defer) => {
         urllib.request(URL, { method: 'POST' }, () => defer.resolve());
-    }
-});
-
-suite.add('curl GET request', {
-    defer: true,
-    fn: (defer) => {
-        var curl = new cUrl.Curl();
-        curl.setOpt('URL', URL)
-        curl.on('end', function() {
-            defer.resolve();
-            this.close();
-        })
-        curl.on('error', function() {
-            defer.resolve();
-            this.close();
-        })
-
-        curl.perform();
-    }
-});
-
-suite.add('curl POST request', {
-    defer: true,
-    fn: (defer) => {
-        var curl = new cUrl.Curl();
-        curl.setOpt('URL', URL);
-        curl.setOpt('HTTPPOST', [])
-        curl.on('end', function() {
-            defer.resolve();
-            this.close();
-        })
-        curl.on('error', function() {
-            defer.resolve();
-            this.close();
-        })
-
-        curl.perform();
     }
 });
 
@@ -244,17 +208,36 @@ suite.add('Wreck POST request', {
     }
 });
 
+suite.add('[OLD] hyperquest GET request', {
+    defer: true,
+    fn: (defer) => {
+        hyperquest.get(URL, {}, (err, res) => {
+            res.resume().once('end', () => defer.resolve());
+        })
+    }
+});
+
+suite.add('[OLD] hyperquest POST request', {
+    defer: true,
+    fn: (defer) => {
+        var hyp = hyperquest.post(URL, {}, (err, res) => {
+            res.resume().once('end', () => defer.resolve());
+        });
+        hyp.end('');
+    }
+});
+
 suite.add('[OLD] axios GET request', {
     defer: true,
     fn: (defer) => {
-        axios.get('/test').then(() => defer.resolve())
+        axios.get(PATH).then(() => defer.resolve())
     }
 });
 
 suite.add('[OLD] axios POST request', {
     defer: true,
     fn: (defer) => {
-        axios.post('/test').then(() => defer.resolve());
+        axios.post(PATH).then(() => defer.resolve());
     }
 });
 

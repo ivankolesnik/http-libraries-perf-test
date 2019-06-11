@@ -1,9 +1,9 @@
 # HTTP libraries performance test
 
-Test environment:
-Intel 9700K @ 4.6 GHz
-16GB RAM
-MacOS 10.13.6
+Test environment:\
+Intel 9700K @ 4.6 GHz\
+16GB RAM\
+MacOS 10.13.6\
 NodeJS 10.15.1
 
 Test results:
