@@ -112,6 +112,20 @@ suite.add('superagent POST request', {
     }
 });
 
+suite.add('axios GET request', {
+    defer: true,
+    fn: (defer) => {
+        axios.get(PATH).then(() => defer.resolve())
+    }
+});
+
+suite.add('axios POST request', {
+    defer: true,
+    fn: (defer) => {
+        axios.post(PATH).then(() => defer.resolve());
+    }
+});
+
 suite.add('Request GET request', {
     defer: true,
     fn: (defer) => {
@@ -224,20 +238,6 @@ suite.add('[OLD] hyperquest POST request', {
             res.resume().once('end', () => defer.resolve());
         });
         hyp.end('');
-    }
-});
-
-suite.add('[OLD] axios GET request', {
-    defer: true,
-    fn: (defer) => {
-        axios.get(PATH).then(() => defer.resolve())
-    }
-});
-
-suite.add('[OLD] axios POST request', {
-    defer: true,
-    fn: (defer) => {
-        axios.post(PATH).then(() => defer.resolve());
     }
 });
 
