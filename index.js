@@ -126,6 +126,16 @@ suite.add('axios POST request', {
     }
 });
 
+suite.add('axios Stream GET request', {
+    defer: true,
+    fn: (defer) => {
+        axios.get(PATH, { responseType: 'stream' })
+            .then((res) => {
+                res.data.resume().once('end', () => defer.resolve());
+            });
+    }
+});
+
 suite.add('Request GET request', {
     defer: true,
     fn: (defer) => {
