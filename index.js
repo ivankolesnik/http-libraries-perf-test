@@ -1,38 +1,44 @@
-var http = require('http');
 var axios = require('axios');
-var superagent = require('superagent');
-var request = require('request');
-var got = require('got');
-var requestify = require('requestify');
+var bent = require('bent');
 var fetch = require('node-fetch');
-var needle = require('needle');
+var http = require('http');
 var miniget = require('miniget');
+var needle = require('needle');
+var request = require('request');
 var simpleget = require('simple-get');
-var wreck = require('wreck');
+var superagent = require('superagent');
 var urllib = require('urllib');
-var hyperquest = require('hyperquest');
+var wreck = require('@hapi/wreck');
 
 var nock = require('nock');
 var HOST = '127.0.0.1';
 var PATH = '/test'
 var URL = `http://${HOST}${PATH}`;
+var BASE_URL = `http://${HOST}`
+var EMPTY_POST = Buffer.from('');
+var EMPTY_RESPONSE = Buffer.from('ok');
 
-axios.defaults.baseURL = `http://${HOST}`;
+axios.defaults.baseURL = BASE_URL;
+// Bent library preparations
+var bentGetBuffer = bent(BASE_URL, 'buffer', 200);
+var bentGetStream = bent(BASE_URL, 200);
+var bentPostBuffer = bent(BASE_URL, 'POST', 'buffer', 200);
 
 var Benchmark = require('benchmark');
 var suite = new Benchmark.Suite;
 
 nock(`http://${HOST}`).persist()
     // .log(console.log)
-    .post(PATH).reply(200, Buffer.from('ok'))
-    .get(PATH).reply(200, Buffer.from('ok'));
+    .post(PATH).reply(200, EMPTY_RESPONSE)
+    .get(PATH).reply(200, EMPTY_RESPONSE);
 
 suite.add('http.request GET request', {
     defer: true,
     fn: (defer) => {
-        http.request({ path: PATH, host: HOST }, (res) => {
+        var req = http.request({ path: PATH, host: HOST }, (res) => {
             res.resume().once('end', () => defer.resolve());
-        }).end();
+        });
+        req.end();
     }
 });
 
@@ -42,22 +48,8 @@ suite.add('http.request POST request', {
         var req = http.request({ host: HOST, path: PATH, method: 'POST' }, (res) => {
             res.resume().once('end', () => defer.resolve());
         });
-        req.write();
+        req.write(EMPTY_POST);
         req.end();
-    }
-});
-
-suite.add('urllib GET request', {
-    defer: true,
-    fn: (defer) => {
-        urllib.request(URL, () => defer.resolve());
-    }
-});
-
-suite.add('urllib POST request', {
-    defer: true,
-    fn: (defer) => {
-        urllib.request(URL, { method: 'POST' }, () => defer.resolve());
     }
 });
 
@@ -71,44 +63,16 @@ suite.add('node-fetch GET request', {
 suite.add('node-fetch POST request', {
     defer: true,
     fn: (defer) => {
-        fetch(URL, { method: 'POST' }).then(() => defer.resolve());
+        fetch(URL, { method: 'POST', body: EMPTY_POST }).then(() => defer.resolve());
     }
 });
 
-suite.add('got GET request', {
+suite.add('node-fetch Stream GET request', {
     defer: true,
     fn: (defer) => {
-        got.get(URL).then(() => defer.resolve());
-    }
-});
-
-suite.add('got POST request', {
-    defer: true,
-    fn: (defer) => {
-        got.post(URL).then(() => defer.resolve());
-    }
-});
-
-suite.add('got Stream GET request', {
-    defer: true,
-    fn: (defer) => {
-        var str = got.stream.get(URL)
-        str.resume()
-        str.once('end', () => defer.resolve());
-    }
-});
-
-suite.add('superagent GET request', {
-    defer: true,
-    fn: (defer) => {
-        superagent.get(URL).end(() => { defer.resolve(); });
-    }
-});
-
-suite.add('superagent POST request', {
-    defer: true,
-    fn: (defer) => {
-        superagent.post(URL).send().end(() => defer.resolve());
+        fetch(URL).then((res) => {
+            res.body.resume().once('end', () => defer.resolve());
+        });
     }
 });
 
@@ -122,7 +86,7 @@ suite.add('axios GET request', {
 suite.add('axios POST request', {
     defer: true,
     fn: (defer) => {
-        axios.post(PATH).then(() => defer.resolve());
+        axios.post(PATH, EMPTY_POST).then(() => defer.resolve());
     }
 });
 
@@ -136,31 +100,55 @@ suite.add('axios Stream GET request', {
     }
 });
 
-suite.add('Request GET request', {
+suite.add('bent GET request', {
     defer: true,
     fn: (defer) => {
-        request.get({ url: URL }, () => defer.resolve());
+        bentGetBuffer(PATH).then(() => defer.resolve());
     }
 });
 
-suite.add('Request POST request', {
+suite.add('bent POST request', {
     defer: true,
     fn: (defer) => {
-        request.post({ url: URL }, () => defer.resolve());
+        bentPostBuffer(PATH, EMPTY_POST).then(() => defer.resolve());
     }
 });
 
-suite.add('Request Forever GET request', {
+suite.add('bent Stream GET request', {
     defer: true,
     fn: (defer) => {
-        request.get({ url: URL, forever: true }, () => defer.resolve());
+        bentGetStream(PATH)
+            .then((res) => {
+                res.resume().once('end', () => defer.resolve());
+            });
     }
 });
 
-suite.add('Request Forever POST request', {
+suite.add('@hapi/wreck GET request', {
     defer: true,
     fn: (defer) => {
-        request.post({ url: URL, forever: true }, () => defer.resolve());
+        wreck.get(URL).then(() => defer.resolve());
+    }
+});
+
+suite.add('@hapi/wreck POST request', {
+    defer: true,
+    fn: (defer) => {
+        wreck.post(URL, { payload: EMPTY_POST }).then(() => defer.resolve());
+    }
+});
+
+suite.add('superagent Stream GET request', {
+    defer: true,
+    fn: (defer) => {
+        superagent.get(URL).end(() => { defer.resolve(); });
+    }
+});
+
+suite.add('superagent Stream POST request', {
+    defer: true,
+    fn: (defer) => {
+        superagent.post(URL).send(EMPTY_POST).end(() => defer.resolve());
     }
 });
 
@@ -174,7 +162,7 @@ suite.add('Needle GET request', {
 suite.add('Needle POST request', {
     defer: true,
     fn: (defer) => {
-        needle.post(URL, '', () => defer.resolve())
+        needle.post(URL, EMPTY_POST, () => defer.resolve())
     }
 });
 
@@ -205,7 +193,7 @@ suite.add('Simple-get GET request', {
 suite.add('Simple-get POST request', {
     defer: true,
     fn: (defer) => {
-        simpleget.concat({ url: URL, method: 'POST', body: '' }, () => defer.resolve())
+        simpleget.concat({ url: URL, method: 'POST', body: EMPTY_POST }, () => defer.resolve())
     }
 });
 
@@ -218,54 +206,49 @@ suite.add('Simple-get Stream GET request', {
     }
 });
 
-suite.add('Wreck GET request', {
+suite.add('urllib GET request', {
     defer: true,
     fn: (defer) => {
-        wreck.get(URL).then(() => defer.resolve());
+        urllib.request(URL, () => defer.resolve());
     }
 });
 
-suite.add('Wreck POST request', {
+suite.add('urllib POST request', {
     defer: true,
     fn: (defer) => {
-        wreck.post(URL, { payload: '' }).then(() => defer.resolve());
+        urllib.request(URL, { method: 'POST', content: EMPTY_POST }, () => defer.resolve());
     }
 });
 
-suite.add('[OLD] hyperquest GET request', {
+suite.add('Request GET request', {
     defer: true,
     fn: (defer) => {
-        hyperquest.get(URL, {}, (err, res) => {
-            res.resume().once('end', () => defer.resolve());
-        })
+        request.get({ url: URL, encoding: null }, () => defer.resolve());
     }
 });
 
-suite.add('[OLD] hyperquest POST request', {
+suite.add('Request POST request', {
     defer: true,
     fn: (defer) => {
-        var hyp = hyperquest.post(URL, {}, (err, res) => {
-            res.resume().once('end', () => defer.resolve());
-        });
-        hyp.end('');
+        request.post({ url: URL, body: EMPTY_POST }, () => defer.resolve());
     }
 });
 
-suite.add('[OLD] requestify GET request', {
+suite.add('Request Forever GET request', {
     defer: true,
     fn: (defer) => {
-        requestify.get(URL).then(() => defer.resolve());
+        request.get({ url: URL, encoding: null, forever: true }, () => defer.resolve());
     }
 });
 
-suite.add('[OLD] requestify POST request', {
+suite.add('Request Forever POST request', {
     defer: true,
     fn: (defer) => {
-        requestify.post(URL).then(() => defer.resolve());
+        request.post({ url: URL, body: EMPTY_POST, forever: true }, () => defer.resolve());
     }
 });
 
-suite.on('complete', function (defer) {
+suite.on('complete', function () {
     console.log('Fastest is ' + this.filter('fastest').map('name'));
 });
 

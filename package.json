@@ -25,6 +25,7 @@
   "dependencies": {
     "axios": "*",
     "benchmark": "*",
+    "bent": "*",
     "forever-agent": "*",
     "got": "*",
     "hyperquest": "*",
@@ -37,6 +38,6 @@
     "simple-get": "*",
     "superagent": "*",
     "urllib": "*",
-    "wreck": "*"
+    "@hapi/wreck": "*"
   }
 }
