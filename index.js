@@ -4,6 +4,7 @@ var fetch = require('node-fetch');
 var http = require('http');
 var miniget = require('miniget');
 var needle = require('needle');
+var phin = require('phin');
 var request = require('request');
 var simpleget = require('simple-get');
 var superagent = require('superagent');
@@ -72,6 +73,29 @@ suite.add('node-fetch Stream GET request', {
     fn: (defer) => {
         fetch(URL).then((res) => {
             res.body.resume().once('end', () => defer.resolve());
+        });
+    }
+});
+
+suite.add('phin GET request', {
+    defer: true,
+    fn: (defer) => {
+        phin(URL).then(() => defer.resolve())
+    }
+});
+
+suite.add('phin POST request', {
+    defer: true,
+    fn: (defer) => {
+        phin({ url: URL, method: 'POST', body: EMPTY_POST }).then(() => defer.resolve());
+    }
+});
+
+suite.add('phin Stream GET request', {
+    defer: true,
+    fn: (defer) => {
+        phin({ url: URL, stream: true }).then((res) => {
+            res.stream.resume().once('end', () => defer.resolve());
         });
     }
 });

@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/nik-kor/http-libraries-perf-test#readme",
   "dependencies": {
+    "@hapi/wreck": "*",
     "axios": "*",
     "benchmark": "*",
     "bent": "*",
@@ -33,11 +34,11 @@
     "needle": "*",
     "nock": "*",
     "node-fetch": "*",
+    "phin": "*",
     "request": "*",
     "requestify": "*",
     "simple-get": "*",
     "superagent": "*",
-    "urllib": "*",
-    "@hapi/wreck": "*"
+    "urllib": "*"
   }
 }
