@@ -6,6 +6,7 @@ var miniget = require('miniget');
 var needle = require('needle');
 var phin = require('phin');
 var request = require('request');
+var postman = require('postman-request');
 var simpleget = require('simple-get');
 var superagent = require('superagent');
 var urllib = require('urllib');
@@ -241,6 +242,34 @@ suite.add('urllib POST request', {
     defer: true,
     fn: (defer) => {
         urllib.request(URL, { method: 'POST', content: EMPTY_POST }, () => defer.resolve());
+    }
+});
+
+suite.add('Postman-request GET request', {
+    defer: true,
+    fn: (defer) => {
+        postman.get({ url: URL, encoding: null }, () => defer.resolve());
+    }
+});
+
+suite.add('Postman-request POST request', {
+    defer: true,
+    fn: (defer) => {
+        postman.post({ url: URL, body: EMPTY_POST }, () => defer.resolve());
+    }
+});
+
+suite.add('Postman-request Forever GET request', {
+    defer: true,
+    fn: (defer) => {
+        postman.get({ url: URL, encoding: null, forever: true }, () => defer.resolve());
+    }
+});
+
+suite.add('Postman-request Forever POST request', {
+    defer: true,
+    fn: (defer) => {
+        postman.post({ url: URL, body: EMPTY_POST, forever: true }, () => defer.resolve());
     }
 });
 
